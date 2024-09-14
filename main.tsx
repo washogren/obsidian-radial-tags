@@ -1,4 +1,7 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, MarkdownFileInfo, MarkdownView, Modal, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom/client';
+import { Planet } from 'react-planet';
 
 // Remember to rename these classes and interfaces!
 
@@ -19,7 +22,8 @@ export default class MyPlugin extends Plugin {
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+			// new Notice('This is a notice!');
+			new SampleModal(this.app).open();
 		});
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
@@ -40,7 +44,8 @@ export default class MyPlugin extends Plugin {
 		this.addCommand({
 			id: 'sample-editor-command',
 			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor: Editor, view: MarkdownView | MarkdownFileInfo
+			) => {
 				console.log(editor.getSelection());
 				editor.replaceSelection('Sample Editor Command');
 			}
@@ -92,17 +97,61 @@ export default class MyPlugin extends Plugin {
 }
 
 class SampleModal extends Modal {
+	root?: ReactDOM.Root
 	constructor(app: App) {
 		super(app);
 	}
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
+	async onOpen() {
+		const { contentEl } = this;
+		const img = new Image();
+		img.src = "https://feelingswheel.com/feelings-wheel-new.jpg";
+		await img.decode();
+		contentEl.appendChild(img);
+		var rootEl = contentEl.createDiv();
+		this.root = ReactDOM.createRoot(rootEl);
+		console.log(this);
+		console.log(this.root);
+
+		this.root.render(
+			<Planet
+				centerContent={
+					<div
+						style={{
+							height: 100,
+							width: 100,
+							borderRadius: '50%',
+							backgroundColor: '#1da8a4',
+						}}
+					/>
+				}
+				open
+				satelliteOrientation='OUTSIDE'
+				autoClose
+			>
+				<div
+					style={{
+						height: 70,
+						width: 70,
+						borderRadius: '50%',
+						backgroundColor: '#9257ad',
+					}}
+				/>
+				<div
+					style={{
+						height: 70,
+						width: 70,
+						borderRadius: '50%',
+						backgroundColor: '#9257ad',
+					}}
+				/>
+			</Planet>
+		);
 	}
 
 	onClose() {
-		const {contentEl} = this;
+		const { contentEl } = this;
+		this.root?.unmount();
 		contentEl.empty();
 	}
 }
@@ -116,7 +165,7 @@ class SampleSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 
